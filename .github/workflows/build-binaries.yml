@@ -28,8 +28,8 @@ jobs:
       with:
         python-version: '3.11'
 
-    # KROK 1: Instalacja zależności systemowych dla Kivy (tylko Linux)
-    # Jest to potrzebne, aby Kivy w ogóle się zainstalowało/zbudowało na Ubuntu
+    # KROK 1: Instalacja zależności systemowych (POPRAWIONE)
+    # Dodano libmtdev-dev (naprawia błąd Input) oraz xclip/xsel (dla schowka)
     - name: Install System Dependencies (Linux)
       if: runner.os == 'Linux'
       run: |
@@ -37,29 +37,32 @@ jobs:
         sudo apt-get install -y \
         libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
         libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev \
-        libgstreamer1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good
+        libgstreamer1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good \
+        libmtdev-dev xclip xsel
 
-    # KROK 2: Instalacja zależności Pythonowych (w tym GUI)
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pyinstaller
-        # Instalujemy ręcznie zależności GUI, które wymieniłeś:
-        pip install kivy[base] enlighten zstandard pycryptodome
-        
-    # Instalacja specyficznych dla Windowsa (warunkowa)
+        # Instalujemy Kivy i komponenty
+        pip install "kivy[base]" enlighten zstandard pycryptodome
+
     - name: Install Windows dependencies
       if: runner.os == 'Windows'
       run: pip install pywin32 pypiwin32 kivy_deps.sdl2 kivy_deps.glew
 
-    # KROK 3: Budowanie z uwzględnieniem Kivy
+    # KROK 2: Budowanie (POPRAWIONE)
+    # Usunięto --collect-all kivy (powodowało błąd z garden)
+    # Dodano --collect-data kivy (bierze pliki .kv, png itp.)
+    # Dodano --hidden-import kivy (bierze kod)
     - name: Build with PyInstaller
       run: |
         pyinstaller --onefile --name nsz \
-        --collect-all kivy \
         --collect-all nsz \
         --collect-all enlighten \
+        --collect-data kivy \
+        --hidden-import kivy \
         --hidden-import win32timezone \
         nsz.py
 
