@@ -28,7 +28,7 @@ jobs:
       with:
         python-version: '3.11'
 
-    # KROK 1: Instalacja zależności systemowych
+    # KROK 1: Instalacja zależności systemowych (Linux)
     - name: Install System Dependencies (Linux)
       if: runner.os == 'Linux'
       run: |
@@ -47,13 +47,17 @@ jobs:
         # Instalujemy Kivy i komponenty
         pip install "kivy[base]" enlighten zstandard pycryptodome
 
+    # Na Windows instalujemy dependencies + ANGLE (ważne!)
     - name: Install Windows dependencies
       if: runner.os == 'Windows'
-      run: pip install pywin32 pypiwin32 kivy_deps.sdl2 kivy_deps.glew
+      run: pip install pywin32 pypiwin32 kivy_deps.sdl2 kivy_deps.glew kivy_deps.angle
 
     # KROK 2: Budowanie (POPRAWIONE)
     - name: Build with PyInstaller
-      shell: bash  # <--- TO NAPRAWIA BŁĄD NA WINDOWSIE
+      shell: bash
+      # Trik: ustawiamy backend na ANGLE, żeby build nie wywalił się o brak GPU
+      env: 
+        KIVY_GL_BACKEND: angle_sdl2
       run: |
         pyinstaller --onefile --name nsz \
         --collect-all nsz \
