@@ -28,8 +28,7 @@ jobs:
       with:
         python-version: '3.11'
 
-    # KROK 1: Instalacja zależności systemowych (POPRAWIONE)
-    # Dodano libmtdev-dev (naprawia błąd Input) oraz xclip/xsel (dla schowka)
+    # KROK 1: Instalacja zależności systemowych
     - name: Install System Dependencies (Linux)
       if: runner.os == 'Linux'
       run: |
@@ -53,10 +52,8 @@ jobs:
       run: pip install pywin32 pypiwin32 kivy_deps.sdl2 kivy_deps.glew
 
     # KROK 2: Budowanie (POPRAWIONE)
-    # Usunięto --collect-all kivy (powodowało błąd z garden)
-    # Dodano --collect-data kivy (bierze pliki .kv, png itp.)
-    # Dodano --hidden-import kivy (bierze kod)
     - name: Build with PyInstaller
+      shell: bash  # <--- TO NAPRAWIA BŁĄD NA WINDOWSIE
       run: |
         pyinstaller --onefile --name nsz \
         --collect-all nsz \
