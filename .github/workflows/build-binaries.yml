@@ -1,0 +1,46 @@
+name: Build Binaries (Exe/Linux)
+
+on:
+  push:
+    branches: [ "master", "main" ]
+  workflow_dispatch: # Pozwala odpalić ręcznie
+
+jobs:
+  build:
+    name: Build for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            artifact_name: nsz.exe
+            asset_name: nsz-windows.exe
+          - os: ubuntu-latest
+            artifact_name: nsz
+            asset_name: nsz-linux
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+
+    - name: Build with PyInstaller
+      # Kompiluje nsz.py do jednego pliku (--onefile)
+      run: |
+        pyinstaller --onefile --name nsz nsz.py
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.asset_name }}
+        path: dist/${{ matrix.artifact_name }}
